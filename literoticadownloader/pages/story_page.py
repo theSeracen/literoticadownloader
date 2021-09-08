@@ -37,7 +37,7 @@ class StoryPage(BasePage):
             else:
                 raise LiteroticaDownloaderException(f'URL {url} returned with status code {response.status_code}')
 
-    def parse(self, delay: int = 0) -> [Story]:
+    def parse(self, delay: int = 0) -> list[Story]:
         self._retrieve_pages(delay)
         story_parts = [self._parse_for_story(page) for page in self.pages]
         attributes = self._extract_attributes(self.pages[0])

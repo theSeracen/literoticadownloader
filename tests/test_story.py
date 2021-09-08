@@ -22,12 +22,14 @@ def test_create_epub(tmp_path: Path):
 
 @pytest.mark.parametrize('test_url', (
     'https://literotica.com/s/the-pet-girl-shoppe',
+    'https://www.literotica.com/s/the-lead',
 ))
 def test_create_full_story(test_url: str, tmp_path: Path):
     test_story = StoryPage(test_url)
     test_story._retrieve_pages()
     test_story = test_story.parse()
+    test_story = test_story[0]
     test_story.create_epub()
     test_story.write_to_disk(tmp_path)
-    test_path = test_story._calculate_path(tmp_path)
+    test_path = test_story.calculate_path(tmp_path)
     assert test_path.exists()

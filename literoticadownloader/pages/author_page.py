@@ -3,10 +3,12 @@
 
 import itertools
 import logging
+from typing import Optional
 
 import bs4
 
 from literoticadownloader.chaptered_story import ChapteredStory
+from literoticadownloader.exceptions import LiteroticaDownloaderException
 from literoticadownloader.pages.base_page import BasePage
 from literoticadownloader.pages.story_page import StoryPage
 from literoticadownloader.story import Story
@@ -17,10 +19,12 @@ logger = logging.getLogger(__name__)
 class AuthorPage(BasePage):
     def __init__(self, url: str):
         super(AuthorPage, self).__init__(url)
+        self.author: Optional[str] = None
 
     def parse(self, delay: int = 0) -> list[Story]:
         self._retrieve_pages()
         soup = bs4.BeautifulSoup(self.pages[0].text, 'html.parser')
+        self.author = self._find_author_name(soup)
         single_story_urls = self._find_single_stories(soup)
 
         logger.debug(f'Found {len(single_story_urls)} single story URLs')
@@ -43,16 +47,22 @@ class AuthorPage(BasePage):
             out.append(link)
         return out
 
-    @staticmethod
-    def _find_chaptered_stories(soup: bs4.BeautifulSoup) -> list[ChapteredStory]:
-        author = soup.find('a', attrs={'class': 'contactheader'}).text
+    def _find_chaptered_stories(self, soup: bs4.BeautifulSoup) -> list[ChapteredStory]:
         out = []
         titles = soup.find_all('tr', attrs={'class': 'ser-ttl'})
         for title in titles:
             story_title = title.text
             result = AuthorPage._crawl_tree_for_parts(title)
-            out.append(ChapteredStory({'title': story_title, 'author': author}, result))
+            out.append(ChapteredStory({'title': story_title, 'author': self.author}, result))
         return out
+
+    @staticmethod
+    def _find_author_name(soup: bs4.BeautifulSoup) -> str:
+        try:
+            author = soup.find('a', attrs={'class': 'contactheader'}).text
+        except AttributeError:
+            raise LiteroticaDownloaderException(f'Failed to find author name in soup')
+        return author
 
     @staticmethod
     def _crawl_tree_for_parts(title_tag: bs4.Tag) -> list[str]:

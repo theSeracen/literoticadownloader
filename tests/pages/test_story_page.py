@@ -38,6 +38,6 @@ def test_extract_attributes(test_url: str, expected_dict: dict[str, str]):
 def test_parse_to_story(test_url: str, expected_story_hash: str):
     test_story = StoryPage(test_url)
     result = test_story.parse()
-    assert isinstance(result, Story)
-    story_content_hash = hashlib.md5(result.story_text.encode('utf-8'))
+    assert all([isinstance(r, Story) for r in result])
+    story_content_hash = hashlib.md5(result[0].story_text.encode('utf-8'))
     assert story_content_hash.hexdigest() == expected_story_hash

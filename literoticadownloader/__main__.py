@@ -38,7 +38,7 @@ def main(args: argparse.Namespace):
     args.destination = Path(args.destination).expanduser().resolve()
     page_module = PageFactory.pull_lever(args.link)
 
-    logger.debug(f'Using module {type(page_module).__name__}')
+    logger.debug(f'Using module {page_module.__name__}')
     if args.delay:
         logger.info(f'Using a delay of {args.delay} seconds')
     stories = page_module(args.link).parse(args.delay)
